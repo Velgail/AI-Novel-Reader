@@ -10,7 +10,7 @@ logger = setup_logger()
 class ContextDB:
     def __init__(self, db_url=None):
         self.db_url = db_url or "sqlite:///data/novel_context.db"
-        db_file_path = self.db_url.replace("sqlite///", "") # "sqlite:///" を削除してパスを取得
+        db_file_path = self.db_url.replace("sqlite:///", "") # "sqlite:///" を削除してパスを取得
         if db_file_path.startswith('/'): # Linux/Macの絶対パスの場合
             db_dir = os.path.dirname(db_file_path)
         else: # Windowsの絶対パスや相対パスの場合
