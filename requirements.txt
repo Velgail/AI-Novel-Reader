@@ -1,0 +1,11 @@
+# 基本
+python-dotenv       # .envファイルから環境変数を読み込む
+# LLM (Gemini)
+google-generativeai
+# スクレイピング (BeautifulSoupとrequestsを推奨)
+requests
+beautifulsoup4
+# データベース
+sqlalchemy          # SQLite操作用 (より高度なORMとして) または直接sqlite3でも可
+# その他 (必要に応じて)
+# pydantic         # データバリデーション用 (設定やAPIレスポンスなど)
