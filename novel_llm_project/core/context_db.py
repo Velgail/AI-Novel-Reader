@@ -10,6 +10,24 @@ logger = setup_logger()
 class ContextDB:
     def __init__(self, db_url=None):
         self.db_url = db_url or "sqlite:///data/novel_context.db"
+        db_file_path = self.db_url.replace("sqlite///", "") # "sqlite:///" を削除してパスを取得
+        if db_file_path.startswith('/'): # Linux/Macの絶対パスの場合
+            db_dir = os.path.dirname(db_file_path)
+        else: # Windowsの絶対パスや相対パスの場合
+            # Python 3.9+ なら os.path.dirname("data\\novel_context.db") -> "data"
+            # それ以前やより確実な方法として
+            parts = db_file_path.split(os.sep)
+            if len(parts) > 1:
+                db_dir = os.path.join(*parts[:-1])
+            else: # ファイル名のみの場合はカレントディレクトリを想定
+                db_dir = "."
+
+        if db_dir and not os.path.exists(db_dir): # db_dirが空でないことを確認
+            try:
+                os.makedirs(db_dir)
+                logger.info(f"Created database directory: {db_dir}")
+            except OSError as e:
+                logger.error(f"Failed to create database directory {db_dir}: {e}")
         self.engine = create_engine(self.db_url)
         Base.metadata.create_all(self.engine)
         self.Session = sessionmaker(bind=self.engine)

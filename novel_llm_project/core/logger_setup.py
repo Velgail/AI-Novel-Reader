@@ -1,10 +1,21 @@
 import logging
 import sys
 from logging.handlers import RotatingFileHandler
+import os
 
 LOG_FILE_PATH = "data/app.log" # ログファイルパス (dataフォルダは.gitignore対象)
 MAX_BYTES = 1024 * 1024 * 5  # 5MB
 BACKUP_COUNT = 5
+
+# setup_logger 関数内、file_handler の設定前に追加
+log_dir = os.path.dirname(LOG_FILE_PATH)
+if not os.path.exists(log_dir):
+    try:
+        os.makedirs(log_dir)
+    except OSError as e:
+        # logger がまだ完全に設定されていない可能性があるため、基本的なprintで警告
+        print(f"Warning: Failed to create log directory {log_dir}: {e}")
+        print("Warning: File logging may be disabled.")
 
 def setup_logger(log_level=logging.INFO):
     logger = logging.getLogger(__name__.split('.')[0]) # プロジェクトルートのロガー名
