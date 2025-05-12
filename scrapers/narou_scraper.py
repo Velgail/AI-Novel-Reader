@@ -1,5 +1,5 @@
 from core.logger_setup import setup_logger
-from base_scraper import BaseScraper
+from scrapers.base_scraper import BaseScraper
 import requests
 from bs4 import BeautifulSoup, NavigableString, Tag
 import time
@@ -7,13 +7,12 @@ from typing import Dict, List, Optional, Any, Tuple
 import re
 from urllib.parse import urljoin
 from datetime import datetime
-import sys
-import os
 
-sys.path.insert(0, os.path.abspath(os.path.dirname(__file__)))
-
+import logging
 
 logger = setup_logger()
+
+REQUEST_TIMEOUT_SECONDS = 20
 
 
 class NarouScraper(BaseScraper):
@@ -33,7 +32,7 @@ class NarouScraper(BaseScraper):
             if headers:
                 default_headers.update(headers)
             logger.debug(f"Requesting URL: {url}")
-            response = requests.get(url, timeout=20, headers=default_headers)
+            response = requests.get(url, timeout=REQUEST_TIMEOUT_SECONDS, headers=default_headers)
             response.raise_for_status()
             response.encoding = response.apparent_encoding
             soup = BeautifulSoup(response.text, "html.parser")
@@ -43,14 +42,10 @@ class NarouScraper(BaseScraper):
             logger.error(f"Request timed out for {url}")
             return None
         except requests.exceptions.RequestException as e:
-            # DEBUG=10
             logger.error(
-                f"Request failed for {url}: {e}", exc_info=logger.level == 10)
+                f"Request failed for {url}: {e}", exc_info=logger.level == logging.DEBUG)
             return None
-        except Exception as e:
-            logger.error(
-                f"An unexpected error occurred during request to {url}: {e}", exc_info=logger.level == 10)
-            return None
+        # BeautifulSoupのパースエラーは通常Exceptionだが、requests例外以外は上位に伝播
 
     def fetch_novel_metadata(self, novel_url: str) -> Optional[Dict[str, Any]]:
         # infotopページ対応
@@ -58,7 +53,7 @@ class NarouScraper(BaseScraper):
         if "/novelview/infotop/" in novel_url:
             is_infotop = True
         # ncodeページ or infotopページどちらも許可
-        if not (re.match(r"https?://ncode\.syosetu\.com/(n\d+[a-z]{2,3}/)?", novel_url) or "/novelview/infotop/" in novel_url):
+        if not (re.match(r"https?://ncode\.syosetu\.com/n\d+[a-z]{2,3}/", novel_url) or "/novelview/infotop/" in novel_url):
             logger.error(f"Invalid URL format for NarouScraper: {novel_url}")
             return None
         soup = self._make_request(novel_url)
@@ -184,7 +179,7 @@ class NarouScraper(BaseScraper):
             return metadata
         except Exception as e:
             logger.error(
-                f"Error parsing metadata for {novel_url}: {e}", exc_info=True)
+                f"Error parsing metadata for {novel_url}: {e}", exc_info=logger.level == logging.DEBUG)
             return None
 
     def _extract_text_with_ruby_as_plain(self, soup_element: Tag) -> str:
@@ -262,7 +257,7 @@ class NarouScraper(BaseScraper):
             return cleaned_text
         except Exception as e:
             logger.error(
-                f"Error parsing episode content for {episode_url}: {e}", exc_info=True)
+                f"Error parsing episode content for {episode_url}: {e}", exc_info=logger.level == logging.DEBUG)
             return None
 
 
