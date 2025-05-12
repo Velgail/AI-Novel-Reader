@@ -40,8 +40,8 @@ class ContextDB:
     def _ensure_db_directory_exists(self):
         if self.db_url.startswith("sqlite:///"):
             db_file_path = self.db_url[len("sqlite:///"):]
-            if not os.path.isabs(db_file_path):
-                db_file_path = os.path.join(os.getcwd(), db_file_path)
+            db_file_path = os.path.abspath(
+                os.path.join(os.getcwd(), db_file_path))
             db_dir = os.path.dirname(db_file_path)
             if db_dir and not os.path.exists(db_dir):
                 try:
@@ -60,7 +60,7 @@ class ContextDB:
         except Exception as e:
             logger.error(f"Database session error: {e}", exc_info=True)
             db.rollback()
-            raise
+            return None
         finally:
             db.close()
 
@@ -202,9 +202,12 @@ class ContextDB:
         if not update_data:
             logger.warning(
                 "No valid keys provided for updating episode LLM results.")
-            return None
+            raise ValueError(
+                "No valid keys provided for updating episode LLM results.")
         try:
             with self.get_db() as db:
+                if db is None:
+                    return None
                 episode = db.query(Episode).filter(
                     Episode.id == episode_id).first()
                 if episode:

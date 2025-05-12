@@ -51,7 +51,7 @@ class Novel(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, nullable=False)
     author = Column(String)
-    url = Column(String, unique=True, nullable=False, index=True)
+    url = Column(String, unique=True, nullable=False, index=True, default="")
     platform = Column(String, index=True)
     tags = Column(Text)
     synopsis = Column(Text)
@@ -172,7 +172,7 @@ class PlotEvent(Base):
         "novels.id", ondelete="CASCADE"), nullable=False, index=True)
     episode_id = Column(Integer, ForeignKey(
         "episodes.id", ondelete="CASCADE"), nullable=False, index=True)
-    summary = Column(Text, nullable=False)
+    summary = Column(Text, nullable=False, default="")
     event_type = Column(String, index=True)
     timestamp_in_episode_llm = Column(String)
     absolute_timestamp_llm = Column(DateTime(timezone=True), index=True)
@@ -217,7 +217,7 @@ class Foreshadowing(Base):
         "novels.id", ondelete="CASCADE"), nullable=False, index=True)
     raised_episode_id = Column(Integer, ForeignKey(
         "episodes.id", ondelete="CASCADE"), nullable=False, index=True)
-    description_by_llm = Column(Text, nullable=False)
+    description_by_llm = Column(Text, nullable=False, default="")
     context_snippet = Column(Text)
     status = Column(SQLAlchemyEnum(ForeshadowingStatus, name="foreshadowing_status_enum"),
                     default=ForeshadowingStatus.UNRESOLVED, nullable=False, index=True)
