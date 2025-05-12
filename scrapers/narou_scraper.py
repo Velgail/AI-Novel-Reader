@@ -43,11 +43,13 @@ class NarouScraper(BaseScraper):
             logger.error(f"Request timed out for {url}")
             return None
         except requests.exceptions.RequestException as e:
-            logger.error(f"Request failed for {url}: {e}", exc_info=False)
+            # DEBUG=10
+            logger.error(
+                f"Request failed for {url}: {e}", exc_info=logger.level == 10)
             return None
         except Exception as e:
             logger.error(
-                f"An unexpected error occurred during request to {url}: {e}", exc_info=True)
+                f"An unexpected error occurred during request to {url}: {e}", exc_info=logger.level == 10)
             return None
 
     def fetch_novel_metadata(self, novel_url: str) -> Optional[Dict[str, Any]]:
@@ -141,9 +143,10 @@ class NarouScraper(BaseScraper):
                 for elem in eplist.children:
                     if not isinstance(elem, Tag):
                         continue
-                    if "p-eplist__chapter-title" in elem.get("class", []):
+                    class_set = set(elem.get("class", []))
+                    if "p-eplist__chapter-title" in class_set:
                         current_chapter = elem.get_text(strip=True)
-                    elif "p-eplist__sublist" in elem.get("class", []):
+                    elif "p-eplist__sublist" in class_set:
                         a_tag = elem.find("a", class_="p-eplist__subtitle")
                         if not a_tag or not a_tag.get("href"):
                             continue
